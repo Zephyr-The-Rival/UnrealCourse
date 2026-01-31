@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <canvas id="myCanvas" width="500" height="800" style="border:1px solid #000000;">
+    </canvas>
+
+    <script>
+        /*
+        understanding how to draw a circle:
+        https://www.w3schools.com/graphics/canvas_circles.asp
+
+        This is how i found how to loop animate function in order to get an "animation"
+        https://stackoverflow.com/questions/55781142/canvas-clear-the-drawing-board-in-a-looprequestanimationframe
+        
+        This is how i found the math behind the border collision:
+        https://stackoverflow.com/questions/20813394/moving-a-circle-backward-when-hitting-the-canvas-x-border
+
+        understanding how to even draw a rectangle:
+        https://www.w3schools.com/graphics/canvas_rectangles.asp
+
+        understanding how to create multiple objects:
+        https://www.codecademy.com/forum_questions/51068e93f73ad4947a005629
+        https://www.sololearn.com/en/Discuss/206918/how-can-i-create-different-objects-in-one-loop-in-javascript-
+        https://stackoverflow.com/questions/66389991/how-can-i-create-multiple-objects-from-a-for-loop-when-they-have-different-attri
+
+        understanding how to add multiple objects into an array:
+        https://www.w3schools.com/jsref/jsref_push.asp
+        https://www.freecodecamp.org/news/javascript-array-of-objects-tutorial-how-to-create-update-and-loop-through-objects-using-js-array-methods/
+
+        understanding how to make two circle collide with each other
+        https://stackoverflow.com/questions/54498808/how-to-solve-elastic-collision
+        */
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+
+        class Vector2 {
+            constructor(newX, newY) {
+                this.X = newX;
+                this.Y = newY;
+            }
+
+            static add(V1, V2) {
+                return new Vector2(V1.X + V2.X, V1.Y + V2.Y);
+            }
+
+            static subtract(V1, V2) {
+                return new Vector2(V1.X - V2.X, V1.Y - V2.Y);
+            }
+
+            static multiply(V1, V2) {
+                return new Vector2(V1.X * V2.X, V1.Y * V2.Y);
+            }
+
+            static divide(V1, V2) {
+                return new Vector2(V1.X / V2.X, V1.Y / V2.Y);
+            }
+
+            static Distance (V1, V2){
+                
+                var dx = (V1.X - V2.X);
+                var dy = (V1.Y - V2.Y);
+
+                var Distance = Math.sqrt(dx * dx + dy * dy);
+                
+            }
+        }
+
+        class circle {
+            constructor(position, radius, color, _startingVelocity) {
+
+                this.pos = position;
+                this.Radius = radius;
+                this.Color = color;
+                this.Velocity = _startingVelocity;
+
+                Shapes.push(this);
+
+            }
+
+            Draw() {
+                ctx.beginPath();
+                ctx.arc(this.pos.X, this.pos.Y, this.Radius, 0, 2 * Math.PI,);
+                ctx.fillStyle = this.Color;
+                ctx.fill();
+            }
+            Move() {
+                this.pos = Vector2.add(this.pos, this.Velocity);
+            }
+
+            CollisionWithBorder() {
+                if (this.pos.X + this.Radius >= c.width) {
+                    this.Velocity.X = this.Velocity.X * -1;
+                    console.log(this.Color + " changed direction")
+                }
+
+                if (this.pos.X - this.Radius <= 0) {
+                    this.Velocity.X = this.Velocity.X * -1;
+                    console.log(this.Color + " changed direction")
+                }
+
+                if (this.pos.Y + this.Radius >= c.height) {
+                    this.Velocity.Y = this.Velocity.Y * -1;
+                }
+
+                if (this.pos.Y - this.Radius <= 0) {
+                    this.Velocity.Y = this.Velocity.Y * -1;
+                }
+                
+            }
+
+            CollideWithOtherBall(other){
+                var dx = this.pos.X - other.pos.X;  
+                var dy = this.pos.Y - other.pos.Y;   
+                var DistanceApart = dx * dx + dy * dy;
+                var DistanceApartSqrt = Math.sqrt(DistanceApart);     
+                var RadiusSum = this.Radius + other.Radius;
+                
+
+                if (DistanceApartSqrt <= RadiusSum){
+                    console.log("is it collidiong");
+
+                    var TempVelo = new Vector2(this.Velocity.X, this.Velocity.Y);
+                    this.Velocity = other.Velocity;
+                    other.Velocity = TempVelo;
+                }
+                
+            }
+
+
+        }
+        class rectangle {
+            constructor(R_position, R_size, R_color) {
+                this.pos = R_position;
+                this.size = R_size;
+                this.Color = R_color;
+                Shapes.push(this);
+            }
+            Draw() {
+                ctx.fillStyle = this.Color;
+                ctx.fillRect(this.pos.X, this.pos.Y, this.size.X, this.size.Y);
+            }
+        }
+        let Shapes = [];
+        let Ball_ID =
+            [
+                { name: "1", color: "Green", type: "Solid" },
+                { name: "2", color: "blue", type: "Solid" },
+                { name: "3", color: "Yellow", type: "Solid" },
+                { name: "4", color: "Purple", type: "Solid" },
+                { name: "5", color: "red", type: "Solid" },
+                { name: "6", color: "orange", type: "Solid" },
+                { name: "7", color: "cyan", type: "Solid" },
+                { name: "8", color: "Magenta", type: "Solid" },
+                { name: "9", color: "Chocolate", type: "Solid" },
+                { name: "10", color: "MidnightBlue", type: "Solid" },
+                { name: "cue", color: "white", type: "cue" },
+                { name: "Eight", color: "black", type: "Eight" },
+            ];
+
+        BACKGROUND_Rectangle = new rectangle(new Vector2(0, 0), new Vector2(c.width, c.height), "#3F9B0B");
+
+        L_U_Corner = new rectangle(new Vector2(0, 0), new Vector2(40, 40), "#3f3f3f");   // making the holes were much smoother than i thought, i mean when i had the borders this was much simpler ig.
+        R_U_Corner = new rectangle(new Vector2(500, 0), new Vector2(-40, 40), "#3f3f3f");
+        L_D_Corner = new rectangle(new Vector2(0, 800), new Vector2(40, -40), "#3f3f3f");
+        R_D_Corner = new rectangle(new Vector2(500, 800), new Vector2(-40, -40), "#3f3f3f");
+        L_M_Hole = new rectangle(new Vector2(0, 380), new Vector2(10, 40), "#3f3f3f");
+        R_M_Hole = new rectangle(new Vector2(490, 380), new Vector2(10, 40), "#3f3f3f");
+
+
+        TOP_Rectangle = new rectangle(new Vector2(40, 0), new Vector2(420, 10), "#654321");   //this
+        LEFT_UP_Rectangle = new rectangle(new Vector2(0, 40), new Vector2(10, 340), "#654321");  //was
+        LEFT_DN_Rectangle = new rectangle(new Vector2(0, 420), new Vector2(10, 340), "#654321"); //very
+        RIGHT_UP_Rectangle = new rectangle(new Vector2(490, 40), new Vector2(10, 340), "#654321"); //very
+        RIGHT_DN_Rectangle = new rectangle(new Vector2(490, 420), new Vector2(10, 340), "#654321"); //very
+        BOTTOM_Rectangle = new rectangle(new Vector2(40, 790), new Vector2(420, 10), "#654321"); // annoying
+
+        var StartingVelocity = new Vector2(3, 0);
+        var StartingVelocityOpp = new Vector2(3,0);
+        const Radius = 15;
+        var StartX = 250;
+        var StartY = 400;
+        var rows = 3;
+        ID_index = 0;
+
+        var circle1 = new circle(new Vector2(150,400), Radius, "red", StartingVelocity);
+        var circle2 = new circle(new Vector2(350,400), Radius, "Blue", StartingVelocity);
+        var circle3 = new circle(new Vector2(350,400), 5, "Green", StartingVelocity);
+        
+
+
+        /*
+        for (r = 0; r <= rows; r++) {
+            var BallsInRow = r + 1;
+            var y = StartY + (r * Radius * Math.sqrt(3));
+            const totalWidth = (BallsInRow - 1) * 2 * Radius;
+            const rowStartX = StartX - totalWidth / 2;
+
+
+            for (i = 0; i < BallsInRow; i++) {
+
+                if (ID_index >= 10) break;
+
+                var x = rowStartX + i * 2 * Radius;
+                ID = Ball_ID[ID_index];
+
+                const Ball = new circle(new Vector2(x, y), Radius, ID.color, StartingVelocity);
+
+
+                ID_index++;
+
+            }
+        }
+             */
+
+
+
+
+        // okay so, I needed to change how i created my objects, i used to just put it in a for loop and just make an x amount of times, which is cool but i had no way *that i know of*,
+        //to actually mess with their position, so i looked into it, and apperenty i will still need to construct each object,but atleast i can push all these abjects into one array.
+        // so now i know Array.push exists, which also helped me to also use that to not only to make my Draw() method univeral, but also my Move() and Collision() methods, granted they exist in other classes.
+
+        function DrawAll() {
+            for (let s of Shapes) {
+
+                s.Draw();
+            }
+        }
+
+        function MoveAll() {
+            for (let s of Shapes) {
+                if (s instanceof circle) {
+                    s.Move();
+
+                }
+            }
+        }
+
+        function CollideAllBorder() {
+            for (let s of Shapes) {
+                if (s instanceof circle) {
+                    s.CollisionWithBorder();
+
+                }
+            }
+        }
+
+        function BallCollisionAll() {
+            for (i = 0; i < Shapes.length; i++) {
+                var a = Shapes[i];
+                if (a instanceof circle) {
+                    
+
+                    for (s = 0; s < Shapes.length; s++) {
+                        b = Shapes[s]
+
+                        if (b instanceof circle && b != a){
+                            a.CollideWithOtherBall(b);
+                        }
+                    }
+                }
+            }
+        }
+
+        function update() {
+            ctx.clearRect(0, 0, c.width, c.height);
+            DrawAll();
+            MoveAll();
+            CollideAllBorder();
+            BallCollisionAll();
+            requestAnimationFrame(update);
+        }
+
+        update();
+
+    </script>
+
+</body>
+
+</html>
