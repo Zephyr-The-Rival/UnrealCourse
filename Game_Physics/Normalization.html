@@ -34,64 +34,51 @@
         var c = document.getElementById("myCanvas");
         var ctx = c.getContext("2d");
 
-        class Vector2
-        {
-            constructor(newX, newY)
-            {
+        class Vector2 {
+            constructor(newX, newY) {
                 this.X = newX;
                 this.Y = newY;
             }
 
-            static add(V1, V2)
-            {
+            static add(V1, V2) {
                 return new Vector2(V1.X + V2.X, V1.Y + V2.Y);
             }
 
-            static subtract(V1, V2)
-            {
+            static subtract(V1, V2) {
                 return new Vector2(V1.X - V2.X, V1.Y - V2.Y);
             }
 
-            static multiply(V1, V2)
-            {
+            static multiply(V1, V2) {
                 return new Vector2(V1.X * V2.X, V1.Y * V2.Y);
             }
 
-            static divide(V1, V2)
-            {
+            static divide(V1, V2) {
                 return new Vector2(V1.X / V2.X, V1.Y / V2.Y);
             }
 
-            static Distance(V1, V2)
-            {
+            static Distance(V1, V2) {  //added a distance method to the vector class/ pythagoras theorem duh!
 
                 var dx = (V1.X - V2.X);
                 var dy = (V1.Y - V2.Y);
 
-                return Distance = Math.sqrt(dx * dx + dy * dy);
+                var Distance = Math.sqrt(dx * dx + dy * dy);
+                return Distance;
 
             }
-
-            length()
-            {
-                return Math.hypot(this.X, this.Y);
-            }
-
-            normalize()
-            {
-                var length = this.length();
-
-                if (length == 0)
+            normalize() {
+                var Length = Math.sqrt(this.X * this.X + this.Y * this.Y);
+                if (Length == 0) {
                     return new Vector2(0, 0);
 
-                return new Vector2(this.X / length, this.Y / length);
+
+                }
+                return new Vector2(this.X / Length, this.Y / Length);
             }
+
         }
 
-        class circle
-        {
-            constructor(position, radius, color, _startingVelocity)
-            {
+        class circle {
+            constructor(position, radius, color, _startingVelocity) {
 
                 this.pos = position;
                 this.Radius = radius;
@@ -102,86 +89,70 @@
 
             }
 
-            Draw()
-            {
+            Draw() {
                 ctx.beginPath();
                 ctx.arc(this.pos.X, this.pos.Y, this.Radius, 0, 2 * Math.PI,);
                 ctx.fillStyle = this.Color;
                 ctx.fill();
             }
-            Move()
-            {
+            Move() {
                 this.pos = Vector2.add(this.pos, this.Velocity);
             }
 
-            CollisionWithBorder()
-            {
-                if (this.pos.X + this.Radius >= c.width)
-                {
+            CollisionWithBorder() {
+                if (this.pos.X + this.Radius >= c.width) {
                     this.Velocity.X = this.Velocity.X * -1;
                     console.log(this.Color + " changed direction")
                 }
 
-                if (this.pos.X - this.Radius <= 0)
-                {
+                if (this.pos.X - this.Radius <= 0) {
                     this.Velocity.X = this.Velocity.X * -1;
                     console.log(this.Color + " changed direction")
                 }
 
-                if (this.pos.Y + this.Radius >= c.height)
-                {
+                if (this.pos.Y + this.Radius >= c.height) {
                     this.Velocity.Y = this.Velocity.Y * -1;
                 }
 
-                if (this.pos.Y - this.Radius <= 0)
-                {
+                if (this.pos.Y - this.Radius <= 0) {
                     this.Velocity.Y = this.Velocity.Y * -1;
                 }
 
             }
 
-            CollideWithOtherBall(other)
-            {
-                var dx = this.pos.X - other.pos.X;
-                var dy = this.pos.Y - other.pos.Y;
-                var DistanceApart = dx * dx + dy * dy;
-                var DistanceApartSqrt = Math.sqrt(DistanceApart);
+            CollideWithOtherBall(other) {
+                var DistanceApartSqrt = Vector2.Distance(this.pos, other.pos);  // changed this to work with the Distance method made in the Vector class
                 var RadiusSum = this.Radius + other.Radius;
 
-    
-
-                if (DistanceApartSqrt <= RadiusSum)
-                {
-                    console.log("is it collidiong");
+                if (DistanceApartSqrt <= RadiusSum) {
 
                     var TempVelo = this.Velocity;
                     this.Velocity = other.Velocity;
                     other.Velocity = TempVelo;
-
                     
-                    var direction = Vector2.subtract(other.pos, this.pos);
-                    var normalizedDirection= direction.normalize();
+                    var direction = Vector2.subtract(this.pos, other.pos);
+                    var Nor_direction = direction.normalize();
+                   
+                    var temp1 = Vector2.multiply(Nor_direction, new Vector2(RadiusSum, RadiusSum));
+                    var temp2 = Vector2.add(temp1, other.pos);
+                    this.pos = temp2;
 
-                    var tmp1= Vector2.multiply(normalizedDirection, new Vector2(RadiusSum,RadiusSum));
-                    var tmp2= Vector2.add(other.pos, tmp1);
-                    this.pos=tmp2;
+
+
                 }
 
             }
 
 
         }
-        class rectangle
-        {
-            constructor(R_position, R_size, R_color)
-            {
+        class rectangle {
+            constructor(R_position, R_size, R_color) {
                 this.pos = R_position;
                 this.size = R_size;
                 this.Color = R_color;
                 Shapes.push(this);
             }
-            Draw()
-            {
+            Draw() {
                 ctx.fillStyle = this.Color;
                 ctx.fillRect(this.pos.X, this.pos.Y, this.size.X, this.size.Y);
             }
@@ -220,17 +191,16 @@
         RIGHT_DN_Rectangle = new rectangle(new Vector2(490, 420), new Vector2(10, 340), "#654321"); //very
         BOTTOM_Rectangle = new rectangle(new Vector2(40, 790), new Vector2(420, 10), "#654321"); // annoying
 
-        var StartingVelocity = new Vector2(3, 0);
-        var StartingVelocityOpp = new Vector2(3, 0);
-        const Radius = 80;
+        var StartingVelocity = new Vector2(1, 0);
+        var StartingVelocityOpp = new Vector2(1, 0);
+        const Radius = 15;
         var StartX = 250;
         var StartY = 400;
         var rows = 3;
         ID_index = 0;
 
-        var circle1 = new circle(new Vector2(150, 400), Radius, "red", new Vector2(1, 1));
-        var circle2 = new circle(new Vector2(350, 400), Radius, "Blue", new Vector2(2, 3));
-
+        var circle1 = new circle(new Vector2(150, 400), Radius, "red", StartingVelocity);
+        var circle2 = new circle(new Vector2(350, 400), Radius, "Blue", StartingVelocityOpp);
 
 
         /*
@@ -264,54 +234,41 @@
         //to actually mess with their position, so i looked into it, and apperenty i will still need to construct each object,but atleast i can push all these abjects into one array.
         // so now i know Array.push exists, which also helped me to also use that to not only to make my Draw() method univeral, but also my Move() and Collision() methods, granted they exist in other classes.
 
-        function DrawAll()
-        {
-            for (let s of Shapes)
-            {
+        function DrawAll() {
+            for (let s of Shapes) {
 
                 s.Draw();
             }
         }
 
-        function MoveAll()
-        {
-            for (let s of Shapes)
-            {
-                if (s instanceof circle)
-                {
+        function MoveAll() {
+            for (let s of Shapes) {
+                if (s instanceof circle) {
                     s.Move();
 
                 }
             }
         }
 
-        function CollideAllBorder()
-        {
-            for (let s of Shapes)
-            {
-                if (s instanceof circle)
-                {
+        function CollideAllBorder() {
+            for (let s of Shapes) {
+                if (s instanceof circle) {
                     s.CollisionWithBorder();
 
                 }
             }
         }
 
-        function BallCollisionAll()
-        {
-            for (i = 0; i < Shapes.length; i++)
-            {
+        function BallCollisionAll() {
+            for (i = 0; i < Shapes.length; i++) {
                 var a = Shapes[i];
-                if (a instanceof circle)
-                {
+                if (a instanceof circle) {
 
 
-                    for (s = 0; s < Shapes.length; s++)
-                    {
+                    for (s = 0; s < Shapes.length; s++) {
                         b = Shapes[s]
 
-                        if (b instanceof circle && b != a)
-                        {
+                        if (b instanceof circle && b != a) {
                             a.CollideWithOtherBall(b);
                         }
                     }
@@ -319,8 +276,7 @@
             }
         }
 
-        function update()
-        {
+        function update() {
             ctx.clearRect(0, 0, c.width, c.height);
             DrawAll();
             MoveAll();
